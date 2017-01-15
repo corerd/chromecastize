@@ -38,6 +38,19 @@ in_array() {
 	return 1
 }
 
+# Embed realpath() function.
+# `realpath` is a bash command line utility
+# that is included in most UNIX distributions but not macOS.
+# In macOS is available `grealpath`,
+# but it requires installing Homebrew that you you might not want.
+# This is a quick and dirty replacement taken from http://stackoverflow.com/a/3572105
+# This prints the path verbatim if it begins with a /.
+# If not it must be a relative path, so it prepends $PWD to the front.
+# The #./ part strips off ./ from the front of $1.
+realpath() {
+    [[ $1 = /* ]] && echo "$1" || echo "$PWD/${1#./}"
+}
+
 print_help() {
 	echo "Usage: chromecastize.sh [ --mp4 | --mkv ] <videofile1> [ videofile2 ... ]"
 }
@@ -186,12 +199,8 @@ if [ -z $FFMPEG ]; then
 	exit 1
 fi
 
-# test if `grealpath` or `realpath` is available
-REALPATH=`which realpath 2> /dev/null || which grealpath 2> /dev/null`
-if [ -z $REALPATH ]; then
-	echo '`grealpath` (or `realpath`) is not available, please install it'
-	exit 1
-fi
+# Use embedded realpath() function.
+REALPATH="realpath"
 
 # check number of arguments
 if [ $# -lt 1 ]; then
